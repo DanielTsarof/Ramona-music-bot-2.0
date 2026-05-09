@@ -22,8 +22,10 @@ class EnvSettings(Settings):
     # BOT
     DISCORD_TOKEN: str = Field(env='DISCORD_TOKEN')
     YOUTUBE_TOKEN: str = Field(env='YOUTUBE_TOKEN')
-    DEFAULT_VOLUME: float = Field(env='DISCORD_TOKEN', default=0.5)
-    IDLE_DISCONNECT_SECONDS: int = Field(env='DISCORD_TOKEN', default=5 * 60)
+    DEFAULT_VOLUME: float = Field(env='DEFAULT_VOLUME', default=0.5)
+    IDLE_DISCONNECT_SECONDS: int = Field(env='IDLE_DISCONNECT_SECONDS', default=5 * 60)
+
+    STORAGE_PATH: str = Field(env='STORAGE_PATH', default='./tmp/music')
 
     LOG_LEVEL: str = Field(env='LOG_LEVEL', default='INFO')
 
