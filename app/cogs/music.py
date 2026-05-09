@@ -63,7 +63,13 @@ class MusicCog(commands.Cog, name="Music"):
     @commands.hybrid_command(description="Play a YouTube URL or search query")
     async def play(self, ctx: commands.Context, *, query: str) -> None:
         await ctx.defer()
-        await self._ensure_voice(ctx)
+
+        # Validate before download so the user gets an error immediately
+        if ctx.guild is None:
+            raise commands.NoPrivateMessage("Voice commands only work in a server.")
+        author = ctx.author
+        if not isinstance(author, discord.Member) or not author.voice or not author.voice.channel:
+            raise commands.CommandError("You need to be in a voice channel first.")
 
         try:
             track_info: TrackInfo = await self._music_service.get_or_download(query)
@@ -71,6 +77,9 @@ class MusicCog(commands.Cog, name="Music"):
             log.error(f"get_or_download failed for query={query!r}: {exc}")
             await ctx.send(f"❌ Could not load track: {exc}")
             return
+
+        # Connect after download: the player's idle timer starts only when the track is ready
+        await self._ensure_voice(ctx)
 
         player = self._registry.get_or_create(ctx.guild.id)
         entry = QueueEntry(
