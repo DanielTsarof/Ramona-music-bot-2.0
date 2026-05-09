@@ -30,7 +30,7 @@ class TrackRepository(AsyncBaseRepository[Track]):
             sa_update(Track)
             .where(Track.video_id == video_id)
             .values(request_count=Track.request_count + 1, last_requested_at=func.now())
-            .execution_options(synchronize_session="fetch")
+            .execution_options(synchronize_session=False)
         )
         await self.session.execute(stmt)
         await self.session.commit()

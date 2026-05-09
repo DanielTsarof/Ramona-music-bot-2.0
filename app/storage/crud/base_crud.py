@@ -245,7 +245,7 @@ class AsyncBaseRepository(Generic[T]):
         if cond is None:
             raise ValueError("update_where(): 'where' is required (refusing to update all rows).")
 
-        stmt = update(self.model).where(cond).values(**values).execution_options(synchronize_session="fetch")
+        stmt = update(self.model).where(cond).values(**values).execution_options(synchronize_session=False)
         result = await self.session.execute(stmt)
         await self.session.commit()
         return int(result.rowcount or 0)
