@@ -208,5 +208,3 @@ class MusicCog(commands.Cog, name="Music"):
             await ctx.send(f"❌ Internal error: `{error.original}`")
         else:
             await ctx.send(f"❌ {error}")
-
-

@@ -30,7 +30,18 @@ class EnvSettings(Settings):
     LOG_LEVEL: str = Field(env='LOG_LEVEL', default='INFO')
 
     # Database
-    POSTGRES_DB_URL: str = Field(env='POSTGRES_DB_URL')
+    POSTGRES_USER: str = Field(env='POSTGRES_USER')
+    POSTGRES_PASSWORD: str = Field(env='POSTGRES_PASSWORD')
+    POSTGRES_DB: str = Field(env='POSTGRES_DB')
+    POSTGRES_HOST: str = Field(env='POSTGRES_HOST', default='localhost')
+    POSTGRES_PORT: int = Field(env='POSTGRES_PORT', default=5432)
+
+    @property
+    def POSTGRES_DB_URL(self) -> str:
+        return (
+            f'postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}'
+            f'@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}'
+        )
 
     # Logger
     LOG_PATH: str = Field(env='LOG_PATH', default='logs/app_log.json')

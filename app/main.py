@@ -3,6 +3,8 @@ from __future__ import annotations
 import asyncio
 
 import discord
+from alembic import command as alembic_command
+from alembic.config import Config as AlembicConfig
 from discord.ext import commands
 
 from app.config import config
@@ -14,6 +16,12 @@ from app.services.music.youtube_music.service import YoutubeMusicService
 from app.services.music.youtube_music.ytdl import YtDlpDownloader
 from app.storage.session import SessionLocal
 from app.utils.file_storage import LocalFileStorage
+
+
+def run_migrations() -> None:
+    alembic_cfg = AlembicConfig("alembic.ini")
+    alembic_command.upgrade(alembic_cfg, "head")
+    log.info("Database migrations applied")
 
 
 async def main() -> None:
@@ -44,4 +52,5 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
+    run_migrations()
     asyncio.run(main())
