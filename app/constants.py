@@ -1,3 +1,6 @@
+FFMPEG_BIN = "ffmpeg"
+FFMPEG_OPTIONS = "-vn"
+
 YTDL_FORMAT = "bestaudio/best"
 YTDL_AUDIO_CODEC = "mp3"
 YTDL_AUDIO_QUALITY = "192"

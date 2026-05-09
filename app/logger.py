@@ -1,7 +1,7 @@
 import sys
 from typing import Literal
 
-from config import config
+from app.config import config
 from loguru import logger
 from pydantic import BaseModel
 

@@ -23,3 +23,4 @@ class TrackInfo(BaseModel):
     file_path: str
     webpage_url: str
     from_cache: bool
+    duration: int | None

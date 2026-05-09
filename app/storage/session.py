@@ -1,4 +1,4 @@
-from config import config
+from app.config import config
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 engine = create_async_engine(config.POSTGRES_DB_URL, pool_pre_ping=True, pool_size=10, max_overflow=5)
