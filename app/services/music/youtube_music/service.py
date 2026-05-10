@@ -2,14 +2,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-
 from app.constants import YOUTUBE_VIDEO_BASE
 from app.logger import log
 from app.schemas.music import TrackInfo
 from app.services.music.youtube_music.api_client import YouTubeAPIClient
 from app.services.music.youtube_music.ytdl import YtDlpDownloader
 from app.storage.crud.track_crud import TrackRepository
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 
 class YoutubeMusicService:

@@ -3,12 +3,11 @@ from __future__ import annotations
 import asyncio
 from logging.config import fileConfig
 
+import app.storage.models  # noqa: F401
 from alembic import context
-from sqlalchemy.ext.asyncio import create_async_engine
-
 from app.config import config as app_config
 from app.storage.base import Base
-import app.storage.models  # noqa: F401
+from sqlalchemy.ext.asyncio import create_async_engine
 
 alembic_config = context.config
 if alembic_config.config_file_name:

@@ -11,9 +11,7 @@ import asyncpg
 async def cleanup(db_url: str, max_tracks: int, max_age_days: int) -> None:
     conn = await asyncpg.connect(db_url)
     try:
-        total = await conn.fetchval(
-            "SELECT COUNT(*) FROM tracks WHERE file_path IS NOT NULL"
-        )
+        total = await conn.fetchval("SELECT COUNT(*) FROM tracks WHERE file_path IS NOT NULL")
         if total <= max_tracks:
             print(f"Cached tracks: {total} (≤ {max_tracks}). Nothing to do.")
             return

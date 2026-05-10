@@ -16,12 +16,12 @@ class Logger(BaseModel):
     :param level: log level
     """
 
-    file_path: str = './logs.log'
-    format: str = '{time} | {level} | {name}:{function}:{line} | {message}'
-    rotation: str = '50 MB'
+    file_path: str = "./logs.log"
+    format: str = "{time} | {level} | {name}:{function}:{line} | {message}"
+    rotation: str = "50 MB"
     enqueue: bool = True
     serialize: bool = True
-    level: Literal['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'TRACE']
+    level: Literal["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "TRACE"]
 
 
 def setup_logger(logger_config: Logger):
@@ -33,7 +33,7 @@ def setup_logger(logger_config: Logger):
         config class for logger setup, by default config.logger
     """
 
-    is_debug = logger_config.level == 'DEBUG'
+    is_debug = logger_config.level == "DEBUG"
 
     # Remove existing loggers to prevent log duplication
     logger.remove()

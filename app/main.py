@@ -5,17 +5,16 @@ import asyncio
 import discord
 from alembic import command as alembic_command
 from alembic.config import Config as AlembicConfig
-from discord.ext import commands
-
-from app.config import config
 from app.cogs.general import GeneralCog
 from app.cogs.music import MusicCog
+from app.config import config
 from app.logger import log
 from app.services.music.youtube_music.api_client import YouTubeAPIClient
 from app.services.music.youtube_music.service import YoutubeMusicService
 from app.services.music.youtube_music.ytdl import YtDlpDownloader
 from app.storage.session import SessionLocal
 from app.utils.file_storage import LocalFileStorage
+from discord.ext import commands
 
 
 def run_migrations() -> None:

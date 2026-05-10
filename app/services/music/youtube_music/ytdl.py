@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import asyncio
-from pathlib import Path
 
 import yt_dlp
-
-from app.constants import YTDL_AUDIO_CODEC, YTDL_AUDIO_QUALITY, YTDL_FORMAT, YOUTUBE_VIDEO_BASE
+from app.constants import YOUTUBE_VIDEO_BASE, YTDL_AUDIO_CODEC, YTDL_AUDIO_QUALITY, YTDL_FORMAT
 from app.logger import log
 from app.schemas.music import DownloadResult
 from app.utils.file_storage import LocalFileStorage

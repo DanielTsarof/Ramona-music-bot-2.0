@@ -6,11 +6,10 @@ import enum
 from dataclasses import dataclass
 
 import discord
-from discord.ext import commands
-
 from app.config import config
 from app.constants import FFMPEG_BIN, FFMPEG_OPTIONS
 from app.logger import log
+from discord.ext import commands
 
 IDLE_DISCONNECT_SECONDS = config.IDLE_DISCONNECT_SECONDS
 DEFAULT_VOLUME = config.DEFAULT_VOLUME

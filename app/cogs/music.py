@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import discord
-from discord.ext import commands
-
 from app.logger import log
 from app.schemas.music import TrackInfo
-from app.services.music.player import GuildPlayer, PlayerRegistry, PlayerState, QueueEntry
+from app.services.music.player import PlayerRegistry, PlayerState, QueueEntry
 from app.services.music.youtube_music.service import YoutubeMusicService
+from discord.ext import commands
 
 
 def _fmt_duration(seconds: int | None) -> str:

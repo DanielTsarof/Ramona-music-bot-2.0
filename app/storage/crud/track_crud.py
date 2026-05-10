@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from sqlalchemy import func, update as sa_update
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.schemas.music import DownloadResult
 from app.storage.crud.base_crud import AsyncBaseRepository
 from app.storage.models import Track
+from sqlalchemy import func
+from sqlalchemy import update as sa_update
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TrackRepository(AsyncBaseRepository[Track]):

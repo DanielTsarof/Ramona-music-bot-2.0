@@ -3,7 +3,6 @@ from __future__ import annotations
 import re
 
 import aiohttp
-
 from app.constants import YOUTUBE_API_BASE, YOUTUBE_SEARCH_MAX_RESULTS, YOUTUBE_VIDEO_BASE
 from app.logger import log
 from app.schemas.music import SearchResult
