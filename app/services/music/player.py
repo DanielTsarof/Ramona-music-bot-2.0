@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import enum
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 
 import discord
@@ -45,6 +46,7 @@ class GuildPlayer:
         self._loop: bool = False
         self._skip_requested: bool = False
         self._replay_entry: QueueEntry | None = None
+        self.now_playing_callback: Callable[[QueueEntry], Awaitable[None]] | None = None
         self._player_task = bot.loop.create_task(self._player_loop())
 
     def attach(self, voice: discord.VoiceClient, text_channel_id: int) -> None:
@@ -54,6 +56,10 @@ class GuildPlayer:
     async def enqueue(self, entry: QueueEntry) -> int:
         await self.queue.put(entry)
         return self.queue.qsize()
+
+    @property
+    def loop(self) -> bool:
+        return self._loop
 
     def toggle_loop(self) -> bool:
         self._loop = not self._loop
@@ -161,10 +167,8 @@ class GuildPlayer:
             self.voice.play(source, after=_after)
             log.info(f"Guild {self.guild_id}: playing {entry.title!r} ({entry.video_id})")
 
-            if self.text_channel_id:
-                ch = self._bot.get_channel(self.text_channel_id)
-                if isinstance(ch, discord.abc.Messageable):
-                    await ch.send(f"▶️ Now playing: **{entry.title}** — {entry.webpage_url}")
+            if self.now_playing_callback:
+                await self.now_playing_callback(entry)
 
             await self._next.wait()
 

@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import contextlib
+
 import discord
+from app.cogs.player_view import PlayerView, build_embed
 from app.logger import log
 from app.schemas.music import TrackInfo
 from app.services.music.player import PlayerRegistry, PlayerState, QueueEntry
@@ -21,6 +24,33 @@ class MusicCog(commands.Cog, name="Music"):
         self._bot = bot
         self._music_service = music_service
         self._registry = PlayerRegistry(bot)
+        self._player_messages: dict[int, discord.Message] = {}
+        self._player_views: dict[int, PlayerView] = {}
+
+    def _make_now_playing_callback(self, guild_id: int, channel: discord.abc.Messageable):
+        async def _callback(entry: QueueEntry) -> None:
+            player = self._registry.get_or_create(guild_id)
+            view = PlayerView(player)
+            self._player_views[guild_id] = view
+            embed = build_embed(player)
+            existing = self._player_messages.get(guild_id)
+            if existing:
+                with contextlib.suppress(discord.NotFound, discord.HTTPException):
+                    await existing.edit(embed=embed, view=view)
+                    return
+            msg = await channel.send(embed=embed, view=view)
+            self._player_messages[guild_id] = msg
+
+        return _callback
+
+    async def _disable_player_message(self, guild_id: int) -> None:
+        view = self._player_views.pop(guild_id, None)
+        msg = self._player_messages.pop(guild_id, None)
+        if view and msg:
+            for child in view.children:
+                child.disabled = True
+            with contextlib.suppress(discord.NotFound, discord.HTTPException):
+                await msg.edit(view=view)
 
     async def cog_unload(self) -> None:
         await self._registry.shutdown_all()
@@ -81,6 +111,8 @@ class MusicCog(commands.Cog, name="Music"):
         await self._ensure_voice(ctx)
 
         player = self._registry.get_or_create(ctx.guild.id)
+        if player.now_playing_callback is None:
+            player.now_playing_callback = self._make_now_playing_callback(ctx.guild.id, ctx.channel)
         entry = QueueEntry(
             video_id=track_info.video_id,
             title=track_info.title,
@@ -195,6 +227,7 @@ class MusicCog(commands.Cog, name="Music"):
         player = self._registry.remove(ctx.guild.id)
         if player:
             await player.shutdown()
+            await self._disable_player_message(ctx.guild.id)
             await ctx.send("👋 Disconnected and cleared the queue.")
         elif ctx.voice_client:
             await ctx.voice_client.disconnect(force=True)
@@ -216,6 +249,7 @@ class MusicCog(commands.Cog, name="Music"):
             if player:
                 log.info(f"Guild {member.guild.id}: bot disconnected externally — cleaning up player")
                 await player.shutdown(disconnect=False)
+                await self._disable_player_message(member.guild.id)
 
     async def cog_command_error(self, ctx: commands.Context, error: commands.CommandError) -> None:
         if isinstance(error, commands.BotMissingPermissions):
