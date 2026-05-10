@@ -42,6 +42,9 @@ class GuildPlayer:
         self.state: PlayerState = PlayerState.IDLE
         self.volume: float = DEFAULT_VOLUME
         self._next = asyncio.Event()
+        self._loop: bool = False
+        self._skip_requested: bool = False
+        self._replay_entry: QueueEntry | None = None
         self._player_task = bot.loop.create_task(self._player_loop())
 
     def attach(self, voice: discord.VoiceClient, text_channel_id: int) -> None:
@@ -52,8 +55,13 @@ class GuildPlayer:
         await self.queue.put(entry)
         return self.queue.qsize()
 
+    def toggle_loop(self) -> bool:
+        self._loop = not self._loop
+        return self._loop
+
     def skip(self) -> bool:
         if self.voice and (self.voice.is_playing() or self.voice.is_paused()):
+            self._skip_requested = True
             self.voice.stop()
             return True
         return False
@@ -81,6 +89,24 @@ class GuildPlayer:
     def get_queue_snapshot(self) -> list[QueueEntry]:
         return list(self.queue._queue)[:10]  # type: ignore[attr-defined]
 
+    def clear_queue(self) -> int:
+        count = 0
+        while not self.queue.empty():
+            try:
+                self.queue.get_nowait()
+                self.queue.task_done()
+                count += 1
+            except asyncio.QueueEmpty:
+                break
+
+        if self.voice and (self.voice.is_playing() or self.voice.is_paused()):
+            self._skip_requested = True
+            self.voice.stop()
+            if self.current is not None:
+                count += 1
+
+        return count
+
     async def shutdown(self, *, disconnect: bool = True) -> None:
         if self.voice and (self.voice.is_playing() or self.voice.is_paused()):
             self.voice.stop()
@@ -95,21 +121,29 @@ class GuildPlayer:
     async def _player_loop(self) -> None:
         while True:
             self._next.clear()
+            self._skip_requested = False
 
-            try:
-                entry = await asyncio.wait_for(self.queue.get(), timeout=IDLE_DISCONNECT_SECONDS)
-            except asyncio.TimeoutError:
-                log.info(f"Guild {self.guild_id}: idle timeout — disconnecting")
-                if self.voice and self.voice.is_connected():
-                    await self.voice.disconnect(force=True)
-                return
+            if self._replay_entry is not None:
+                entry = self._replay_entry
+                self._replay_entry = None
+                from_queue = False
+            else:
+                try:
+                    entry = await asyncio.wait_for(self.queue.get(), timeout=IDLE_DISCONNECT_SECONDS)
+                except asyncio.TimeoutError:
+                    log.info(f"Guild {self.guild_id}: idle timeout — disconnecting")
+                    if self.voice and self.voice.is_connected():
+                        await self.voice.disconnect(force=True)
+                    return
+                from_queue = True
 
             self.current = entry
             self.state = PlayerState.PLAYING
 
             if self.voice is None or not self.voice.is_connected():
                 log.warning(f"Guild {self.guild_id}: no voice connection, skipping {entry.title!r}")
-                self.queue.task_done()
+                if from_queue:
+                    self.queue.task_done()
                 self.current = None
                 self.state = PlayerState.IDLE
                 continue
@@ -136,7 +170,11 @@ class GuildPlayer:
 
             self.current = None
             self.state = PlayerState.IDLE
-            self.queue.task_done()
+            if from_queue:
+                self.queue.task_done()
+
+            if self._loop and not self._skip_requested:
+                self._replay_entry = entry
 
 
 class PlayerRegistry:

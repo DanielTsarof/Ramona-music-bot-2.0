@@ -127,6 +127,17 @@ class MusicCog(commands.Cog, name="Music"):
         else:
             await ctx.send("Not paused.")
 
+    @commands.hybrid_command(description="Toggle looping the current track")
+    async def loop(self, ctx: commands.Context) -> None:
+        if ctx.guild is None:
+            return
+        player = self._registry.get_or_create(ctx.guild.id)
+        enabled = player.toggle_loop()
+        if enabled:
+            await ctx.send("🔁 Loop enabled — current track will repeat.")
+        else:
+            await ctx.send("➡️ Loop disabled.")
+
     @commands.hybrid_command(description="Set volume (0–200%)")
     async def volume(self, ctx: commands.Context, percent: commands.Range[int, 0, 200]) -> None:
         if ctx.guild is None:
@@ -152,6 +163,17 @@ class MusicCog(commands.Cog, name="Music"):
             lines.append(f"`{i}.` {entry.title} `[{dur}]`")
 
         await ctx.send("\n".join(lines) if lines else "The queue is empty.")
+
+    @commands.hybrid_command(description="Stop playback and clear the queue")
+    async def clear(self, ctx: commands.Context) -> None:
+        if ctx.guild is None:
+            return
+        player = self._registry.get_or_create(ctx.guild.id)
+        removed = player.clear_queue()
+        if removed:
+            await ctx.send(f"🗑️ Cleared {removed} track(s) and stopped playback.")
+        else:
+            await ctx.send("Nothing to clear.")
 
     @commands.hybrid_command(name="np", description="Show the currently playing track")
     async def now_playing(self, ctx: commands.Context) -> None:
