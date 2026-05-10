@@ -22,6 +22,7 @@ class EnvSettings(Settings):
     # BOT
     DISCORD_TOKEN: str = Field(env="DISCORD_TOKEN")
     YOUTUBE_TOKEN: str = Field(env="YOUTUBE_TOKEN")
+    LLM_TOKEN: str = Field(env="LLM_TOKEN")
     DEFAULT_VOLUME: float = Field(env="DEFAULT_VOLUME", default=0.5)
     IDLE_DISCONNECT_SECONDS: int = Field(env="IDLE_DISCONNECT_SECONDS", default=5 * 60)
 
