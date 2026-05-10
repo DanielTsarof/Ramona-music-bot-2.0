@@ -7,11 +7,14 @@ from alembic import command as alembic_command
 from alembic.config import Config as AlembicConfig
 from app.cogs.general import GeneralCog
 from app.cogs.music import MusicCog
+from app.cogs.speech import SpeechCog
 from app.config import config
 from app.logger import log
 from app.services.music.youtube_music.api_client import YouTubeAPIClient
 from app.services.music.youtube_music.service import YoutubeMusicService
 from app.services.music.youtube_music.ytdl import YtDlpDownloader
+from app.services.speech.context_service import ContextService
+from app.services.speech.llm_client import LLMClient
 from app.storage.session import SessionLocal
 from app.utils.file_storage import LocalFileStorage
 from discord.ext import commands
@@ -34,6 +37,8 @@ async def main() -> None:
     file_storage = LocalFileStorage(config.STORAGE_PATH)
     downloader = YtDlpDownloader(file_storage)
     music_service = YoutubeMusicService(api_client, downloader, SessionLocal)
+    llm_client = LLMClient(config.LLM_API_KEY, config.LLM_MODEL, config.LLM_MAX_RESPONSE_TOKENS)
+    context_service = ContextService(SessionLocal, config.LLM_MODEL)
 
     @bot.event
     async def on_ready() -> None:
@@ -47,6 +52,7 @@ async def main() -> None:
     async with bot:
         await bot.add_cog(MusicCog(bot, music_service))
         await bot.add_cog(GeneralCog(bot))
+        await bot.add_cog(SpeechCog(bot, llm_client, context_service))
         await bot.start(config.DISCORD_TOKEN)
 
 
