@@ -11,3 +11,4 @@ wheels/
 .idea
 *.mp3
 .env
+default-system-prompt.txt
