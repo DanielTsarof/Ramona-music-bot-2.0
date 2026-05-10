@@ -242,14 +242,35 @@ class MusicCog(commands.Cog, name="Music"):
         before: discord.VoiceState,
         after: discord.VoiceState,
     ) -> None:
-        if self._bot.user is None or member.id != self._bot.user.id:
+        # Bot itself was disconnected externally
+        if self._bot.user and member.id == self._bot.user.id:
+            if after.channel is None:
+                player = self._registry.remove(member.guild.id)
+                if player:
+                    log.info(f"Guild {member.guild.id}: bot disconnected externally — cleaning up player")
+                    await player.shutdown(disconnect=False)
+                    await self._disable_player_message(member.guild.id)
             return
-        if after.channel is None:
-            player = self._registry.remove(member.guild.id)
-            if player:
-                log.info(f"Guild {member.guild.id}: bot disconnected externally — cleaning up player")
-                await player.shutdown(disconnect=False)
-                await self._disable_player_message(member.guild.id)
+
+        # A human member left a channel
+        if before.channel is None or after.channel == before.channel:
+            return
+
+        guild = member.guild
+        voice_client = guild.voice_client
+        if voice_client is None or voice_client.channel != before.channel:
+            return
+
+        if any(not m.bot for m in before.channel.members):
+            return
+
+        log.info(f"Guild {guild.id}: last member left — disconnecting")
+        player = self._registry.remove(guild.id)
+        if player:
+            await player.shutdown()
+        else:
+            await voice_client.disconnect(force=True)
+        await self._disable_player_message(guild.id)
 
     async def cog_command_error(self, ctx: commands.Context, error: commands.CommandError) -> None:
         if isinstance(error, commands.BotMissingPermissions):
